@@ -1,0 +1,50 @@
+# vim: set ft=yaml sw=2 ts=2 et :
+---
+
+architecture: arm64
+
+actions:
+  - action: unpack
+    file: bootstrapped.tar.gz
+
+  - action: apt
+    recommends: false
+    description: Install base packages
+    packages:
+      - mobian-base
+      - openssh-server
+      - zsh
+
+  - action: run
+    description: Set up default user
+    chroot: true
+    script: scripts/setup-user.sh karsten 1234
+
+  - action: overlay
+    description: Set up sshd configuration
+    source: overlays/sshd_config.d/
+    destination: /etc/ssh/sshd_config.d/
+
+  - action: overlay
+    description: Set up user's ssh configuration
+    source: overlays/ssh/
+    destination: /home/karsten/.ssh/
+
+  - action: run
+    description: Set owner of .ssh
+    chroot: true
+    command: chown -R karsten:karsten /home/karsten/.ssh/
+
+  - action: overlay
+    description: setup zram devices
+    source: overlays/zram/
+    destination: /etc/
+
+  - action: run
+    description: Set up system
+    chroot: true
+    script: scripts/setup-system.sh mobian
+
+  - action: pack
+    file: base.tar.gz
+
