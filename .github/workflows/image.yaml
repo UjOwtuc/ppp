@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: install deps
-        run: sudo apt -y install debos
+        run: sudo apt -y install debos debian-archive-keyring
 
       - uses: actions/cache@v2
         with:
