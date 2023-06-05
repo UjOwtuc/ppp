@@ -33,5 +33,5 @@ jobs:
             /acng
 
       - name: bootstrap
-        run: debos --scratchsize=8G 01-bootstrap.yaml
+        run: sudo debos --disable-fakemachine --scratchsize=8G 01-bootstrap.yaml
 
