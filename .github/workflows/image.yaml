@@ -6,19 +6,9 @@ name: build image
 "on":
   - push
 
-env:
-  http_proxy: http://localhost:3142
-
 jobs:
   build:
     runs-on: ubuntu-latest
-    services:
-      apt-cacher-ng:
-        image: sameersbn/apt-cacher-ng
-        ports:
-          - "3142:3142"
-        volumes:
-          - /acng:/var/cache/apt-cacher-ng
 
     steps:
       - uses: actions/checkout@v2
@@ -26,12 +16,28 @@ jobs:
       - name: install deps
         run: sudo apt -y install debos debian-archive-keyring
 
-      - uses: actions/cache@v2
-        with:
-          key: acng
-          path: |-
-            /acng
-
       - name: bootstrap
-        run: sudo debos --disable-fakemachine --scratchsize=8G --environ-var=http_proxy:$http_proxy 01-bootstrap.yaml
+        run: sudo debos --disable-fakemachine --scratchsize=8G 01-bootstrap.yaml
+
+      - name: install base system
+        run: sudo debos --disable-fakemachine --scratchsize=8G 02-base.yaml
+
+      - name: install plasma
+        run: sudo debos --disable-fakemachine --scratchsize=8G 03-plasma.yaml
+
+      - name: finalize image
+        run: sudo debos --disable-fakemachine --scratchsize=8G 04-image.yaml
+
+      - name: create block map
+        run: bmaptool create image.img > image.img.bmap
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: image.img
+          path: image.img
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: image.img.bmap
+          path: image.img.bmap
 
